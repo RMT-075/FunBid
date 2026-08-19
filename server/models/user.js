@@ -6,12 +6,12 @@ const { hashPW } = require('../helpers/bcrypt');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // Produk yang dibuat admin ini
+      
       User.hasMany(models.Product, {
         foreignKey: 'created_by'
       });
 
-      // Semua bid yang pernah dilakukan user ini
+     
       User.hasMany(models.Bid, {
         foreignKey: 'user_id'
       });
