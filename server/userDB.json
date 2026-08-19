@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Admin Utama",
+    "email": "admin@auction.com",
+    "password": "admin123",
+    "role": "admin"
+  },
+  {
+    "name": "Budi Santoso",
+    "email": "budi@mail.com",
+    "password": "password123",
+    "role": "bidder"
+  },
+  {
+    "name": "Siti Aminah",
+    "email": "siti@mail.com",
+    "password": "password123",
+    "role": "bidder"
+  },
+  {
+    "name": "Rudi Hartono",
+    "email": "rudi@mail.com",
+    "password": "password123",
+    "role": "bidder"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "product_id": 1,
+    "user_id": 2,
+    "amount": 5250000
+  },
+  {
+    "product_id": 1,
+    "user_id": 3,
+    "amount": 5500000
+  },
+  {
+    "product_id": 1,
+    "user_id": 2,
+    "amount": 5750000
+  },
+  {
+    "product_id": 3,
+    "user_id": 4,
+    "amount": 26000000
+  },
+  {
+    "product_id": 3,
+    "user_id": 2,
+    "amount": 27000000
+  }
+]
