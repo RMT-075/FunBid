@@ -12,7 +12,8 @@ module.exports = (sequelize, DataTypes) => {
 
       // Admin yang buat produk ini
       Product.belongsTo(models.User, {
-        foreignKey: 'created_by'
+        foreignKey: 'created_by',
+        as: 'creator'
       });
 
       // User yang menang (wajib beda alias, karena sama-sama ke Users)
