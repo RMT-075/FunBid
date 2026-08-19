@@ -17,3 +17,5 @@ const authorizationAdmin = async (req, res, next) => {
         next(error)
     }
 }
+
+module.exports = authorizationAdmin
