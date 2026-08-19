@@ -1,4 +1,4 @@
-const { Product } = require("../models");
+const { Product, Bid } = require("../models");
 
 class AdminController {
   static async getDashboard(req, res, next) {
@@ -106,6 +106,55 @@ class AdminController {
       });
 
       res.status(201).json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getAiSuggestion(req, res, next) {
+    try {
+      const { name, description } = req.body;
+
+      if (!name) {
+        throw {
+          name: "ValidationError",
+          message: "Product name is required",
+        };
+      }
+
+      const prompt = `
+        You are an expert auction assistant.
+
+        Analyze this auction product:
+
+        Product name: ${name}
+        Current description: ${description || "No description provided"}
+
+        Give suggestions for:
+        1. An improved and attractive product description.
+        2. A reasonable suggested starting price in Indonesian Rupiah.
+        3. A reasonable suggested bid increment in Indonesian Rupiah.
+
+        Return ONLY valid JSON with this exact format:
+
+        {
+            "suggestedDescription": "string",
+            "suggestedStartingPrice": number,
+            "suggestedBidIncrement": number
+        }
+        `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        },
+      });
+
+      const result = JSON.parse(response.text);
+
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }

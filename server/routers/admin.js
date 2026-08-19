@@ -7,9 +7,10 @@ const authorizationAdmin = require("../middlewares/authorizationAdmin");
 router.use(authentication);
 router.use(authorizationAdmin);
 
+router.get("/dashboard", AdminController.getDashboard);
 router.get("/auctions", AdminController.getAuctions);
 router.post("/auctions", AdminController.createAuction);
-router.get("/dashboard", AdminController.getDashboard);
+router.post("/auctions/ai-suggestion", AdminController.getAiSuggestion);
 router.get("/bids", AdminController.getBids);
 router.get("/auctions/:id", AdminController.getAuctionById);
 router.patch("/auctions/:id/status", AdminController.updateAuctionStatus);
