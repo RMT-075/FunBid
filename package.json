@@ -1,0 +1,21 @@
+{
+  "name": "phase2-group",
+  "version": "1.0.0",
+  "description": "auction app for group ch",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RMT-075/Phase2-Group.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RMT-075/Phase2-Group/issues"
+  },
+  "homepage": "https://github.com/RMT-075/Phase2-Group#readme"
+}
