@@ -11,7 +11,7 @@ const authentication = async (req, res, next) => {
 
         const access_token = authorization.split(" ")[1]
 
-        const payload = verifyToken(access_token)
+        const payload = verifToken(access_token)
 
         const user = await User.findOne({
             where: {
@@ -25,6 +25,7 @@ const authentication = async (req, res, next) => {
 
         req.loginInfo = {
             userId: user.id,
+            name : user.name,
             email: user.email,
             role: user.role
         }

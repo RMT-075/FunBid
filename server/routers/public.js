@@ -1,5 +1,6 @@
 const express = require('express');
 const PublicController = require('../controllers/controllerPublic');
+const authentication = require('../middlewares/authentication');
 const router = express.Router();
 
 router.get('/',(req,res) => {
@@ -8,6 +9,10 @@ router.get('/',(req,res) => {
 
 router.post('/login',PublicController.login)
 router.post('/register',PublicController.register)
+
+router.use(authentication)
+
+router.get('/products',PublicController.read)
 
 
 module.exports = router
