@@ -94,7 +94,15 @@ class PublicController {
     try {
       const { id } = req.params;
 
-      let data = await Product.findByPk(id);
+      let data = await Product.findByPk(id,{
+        include: [
+          {
+            model: User,
+            as: "winner",
+            attributes: { exclude: ["password"] },
+          },
+        ]
+      });
 
       if (!data) {
         throw { name: "NotFound" };

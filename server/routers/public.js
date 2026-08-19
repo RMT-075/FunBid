@@ -13,6 +13,7 @@ router.post('/register',PublicController.register)
 router.use(authentication)
 
 router.get('/products',PublicController.read)
+router.get('/products/:id',PublicController.readById)
 
 
 module.exports = router
