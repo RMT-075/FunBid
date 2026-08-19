@@ -49,6 +49,26 @@ const errorHandler = (error, req, res, next) => {
         message = "Data not found"
     }
 
+    if (error.name == 'BidInvalidAmount') {
+        status = 400
+        message = "Bid amount is required and must be a number"
+    }
+
+    if (error.name == 'AuctionNotLive') {
+        status = 400
+        message = "This auction is not live"
+    }
+
+    if (error.name == 'AuctionNotInRange') {
+        status = 400
+        message = "This auction is not currently active"
+    }
+
+    if (error.name == 'BidTooLow') {
+        status = 400
+        message = `Bid must be at least ${error.minimumBid}`
+    }
+
     res.status(status).json({ message })
 }
 

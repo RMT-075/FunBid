@@ -13,6 +13,10 @@ router.post('/register',PublicController.register)
 router.use(authentication)
 
 router.get('/products',PublicController.read)
+router.get('/products/:id',PublicController.readById)
+
+router.get('/products/:id/bids',PublicController.getBidsByProduct)
+router.post('/products/:id/bids',PublicController.createBid)
 
 
 module.exports = router
