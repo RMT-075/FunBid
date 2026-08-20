@@ -107,7 +107,17 @@ class AdminController {
   static async getBids(req, res, next) {
     try {
       const bids = await Bid.findAll({
-        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: Product,
+            attributes: ["id", "name"]
+          },
+          {
+            model: User,
+            attributes: ["id", "name"]
+          }
+        ],
+        order: [["createdAt", "DESC"]]
       });
 
       res.status(200).json(bids);

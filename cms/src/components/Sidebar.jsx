@@ -50,15 +50,6 @@ export default function Sidebar() {
           ))}
         </div>
       </nav>
-
-      <div className="border-t border-gray-700 p-4">
-        <button
-          onClick={handleLogout}
-          className="w-full rounded-lg bg-red-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
     </aside>
   );
 }
