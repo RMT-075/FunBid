@@ -6,36 +6,31 @@ const authentication = async (req, res, next) => {
         const { authorization } = req.headers
 
         if (!authorization) {
-            throw { name: "Unauthorized" }
+            throw { name: 'Unauthorized' }
         }
 
-        const access_token = authorization.split(" ")[1]
+        const access_token = authorization.split(' ')[1]
 
         const payload = verifToken(access_token)
 
-        const user = await User.findOne({
-            where: {
-                email: payload.email
-            }
-        })
+        const user = await User.findByPk(payload.userId)
 
         if (!user) {
-            throw { name: "Unauthorized" }
+            throw { name: 'Unauthorized' }
         }
 
         req.loginInfo = {
             userId: user.id,
-            name : user.name,
+            name: user.name,
             email: user.email,
             role: user.role
         }
 
         next()
     } catch (error) {
-        console.log(error);
+        console.log(error)
         next(error)
     }
 }
 
 module.exports = authentication
-

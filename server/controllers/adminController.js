@@ -1,6 +1,65 @@
-const { Product, Bid } = require("../models");
+const { compPW } = require("../helpers/bcrypt");
+const client = require("../helpers/imageKit");
+const ImageKit = require("@imagekit/nodejs");
+const { signToken } = require("../helpers/jwt");
+const { User, Product, Bid } = require("../models");
+const ai = require("../helpers/gemini");
 
 class AdminController {
+  static async login(req, res, next) {
+    try {
+      const { email, password } = req.body;
+
+      if (!email) {
+        throw {
+          name: "LoginEmail",
+        };
+      }
+
+      if (!password) {
+        throw {
+          name: "LoginPassword",
+        };
+      }
+
+      const user = await User.findOne({
+        where: {
+          email,
+        },
+      });
+
+      if (!user) {
+        throw {
+          name: "LoginError",
+        };
+      }
+
+      const isValidPassword = compPW(password, user.password);
+
+      if (!isValidPassword) {
+        throw {
+          name: "LoginError",
+        };
+      }
+
+      if (user.role !== "admin") {
+        throw {
+          name: "Forbidden",
+        };
+      }
+
+      const access_token = signToken({
+        userId: user.id,
+      });
+
+      res.status(200).json({
+        access_token,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getDashboard(req, res, next) {
     try {
       const totalAuction = await Product.count();
@@ -62,7 +121,6 @@ class AdminController {
       const {
         name,
         description,
-        image_url,
         starting_price,
         bid_increment,
         start_time,
@@ -91,6 +149,20 @@ class AdminController {
           name: "ValidationError",
           message: "End time must be after start time",
         };
+      }
+
+      let image_url = null;
+
+      if (req.file) {
+        const result = await client.files.upload({
+          file: await ImageKit.toFile(
+            Buffer.from(req.file.buffer),
+            req.file.originalname,
+          ),
+          fileName: req.file.originalname,
+        });
+
+        image_url = result.url;
       }
 
       const product = await Product.create({
@@ -189,7 +261,6 @@ class AdminController {
       const {
         name,
         description,
-        image_url,
         starting_price,
         bid_increment,
         start_time,
@@ -219,6 +290,20 @@ class AdminController {
           name: "ValidationError",
           message: "End time must be after start time",
         };
+      }
+
+      let image_url = product.image_url;
+
+      if (req.file) {
+        const result = await client.files.upload({
+          file: await ImageKit.toFile(
+            Buffer.from(req.file.buffer),
+            req.file.originalname,
+          ),
+          fileName: req.file.originalname,
+        });
+
+        image_url = result.url;
       }
 
       await product.update({
