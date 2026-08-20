@@ -71,7 +71,7 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-800">
-            Selamat Datang di LelangKita
+            Selamat Datang di FunBid
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             Masuk untuk mulai ikut lelang favoritmu
