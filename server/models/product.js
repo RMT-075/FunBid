@@ -5,18 +5,18 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Product extends Model {
     static associate(models) {
-      // Bid milik produk ini
+     
       Product.hasMany(models.Bid, {
         foreignKey: 'product_id'
       });
 
-      // Admin yang buat produk ini
+    
       Product.belongsTo(models.User, {
         foreignKey: 'created_by',
         as: 'creator'
       });
 
-      // User yang menang (wajib beda alias, karena sama-sama ke Users)
+      
       Product.belongsTo(models.User, {
         foreignKey: 'winner_id',
         as: 'winner'
