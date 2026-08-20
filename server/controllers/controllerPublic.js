@@ -262,7 +262,7 @@ Balas HANYA dalam format JSON murni (tanpa markdown, tanpa teks lain), persis st
 `.trim();
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.7-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
