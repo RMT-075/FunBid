@@ -52,7 +52,7 @@ class PublicController {
       }
 
       const payload = {
-        id: cekEmail.id,
+        userId: cekEmail.id,
         name: cekEmail.name,
         email: cekEmail.email,
         role: cekEmail.role,
