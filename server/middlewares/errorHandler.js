@@ -73,6 +73,11 @@ const errorHandler = (error, req, res, next) => {
     status = 400;
     message = error.message;
   }
+  
+  if (error.name == "AIParseError") {
+    status = 502;
+    message = "Failed to get a valid response from AI, please try again";
+  }
 
   res.status(status).json({ message });
 };

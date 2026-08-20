@@ -3,10 +3,12 @@ const { signToken, verifToken } = require("../helpers/jwt");
 const { Product, User, Bid, sequelize } = require("../models");
 const { closeIfExpired, openIfStarted } = require("../jobs/closeAuctions");
 
+const { GoogleGenAI } = require("@google/genai");
+
 class PublicController {
   static async register(req, res, next) {
     try {
-      const { name, email, password} = req.body;
+      const { name, email, password } = req.body;
       // console.log(req.body);
 
       let data = await User.create({
@@ -146,7 +148,6 @@ class PublicController {
   }
 
   static async createBid(req, res, next) {
-
     const t = await sequelize.transaction();
 
     try {
@@ -194,7 +195,6 @@ class PublicController {
       product.winner_id = userId;
       await product.save({ transaction: t });
 
-  
       await t.commit();
 
       const bidWithUser = await Bid.findByPk(bid.id, {
@@ -215,6 +215,79 @@ class PublicController {
       });
     } catch (error) {
       await t.rollback();
+      next(error);
+    }
+  }
+
+  static async getBidAdvice(req, res, next) {
+    try {
+      const ai = new GoogleGenAI({
+        apiKey: "AQ.Ab8RN6IzkB-qX3OQT4v8SvpRxPTyY0cm2zGo18WbXridbCjZtQ",
+      });
+      const { id } = req.params;
+
+      const product = await Product.findByPk(id);
+      if (!product) throw { name: "NotFound" };
+
+      const currentPrice = Number(product.current_price);
+      const bidIncrement = Number(product.bid_increment);
+      const minimumBid = currentPrice + bidIncrement;
+
+      const prompt = `
+Kamu adalah asisten yang membantu penawar di aplikasi lelang online untuk memutuskan
+apakah hari ini worth it untuk melanjutkan bid atau tidak.
+
+Data produk:
+- Nama: ${product.name}
+- Deskripsi: ${product.description ? product.description : "(tidak ada deskripsi)"}
+- Harga saat ini: ${currentPrice}
+- Kenaikan bid: ${bidIncrement}
+- Bid minimum berikutnya: ${minimumBid}
+
+Analisa data di atas (terutama seberapa besar kenaikan bid dibanding harga saat ini, dan apakah deskripsi produk
+mendukung untuk lanjut bid atau tidak), lalu PILIH SATU dari 3 opsi berikut yang paling sesuai:
+
+- "merah"  = jangan bid lagi, karena tidak worth it
+- "kuning" = tergantung kemauan/kebutuhan user, tidak ada jawaban pasti
+- "hijau"  = worth it untuk bid lagi
+
+Balas HANYA dalam format JSON murni (tanpa markdown, tanpa teks lain), persis struktur berikut:
+
+{
+  "decision": "merah" | "kuning" | "hijau",
+  "reason": "satu kalimat alasan kenapa kamu memilih opsi itu, spesifik berdasarkan data di atas"
+}
+
+"reason" wajib 1 kalimat saja, dalam Bahasa Indonesia.
+`.trim();
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        },
+      });
+
+      let options;
+      try {
+        options = JSON.parse(response.text);
+      } catch (err) {
+        throw { name: "AIParseError" };
+      }
+
+      res.status(200).json({
+        message: "succeed to generate bid advice",
+        data: {
+          productId: product.id,
+          currentPrice,
+          bidIncrement,
+          minimumBid,
+          options,
+        },
+      });
+    } catch (error) {
+      console.log(error);
       next(error);
     }
   }

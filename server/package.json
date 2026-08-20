@@ -1,6 +1,10 @@
 {
   "dependencies": {
+<<<<<<< HEAD
     "@google/genai": "^2.17.1",
+=======
+    "@google/genai": "^2.18.0",
+>>>>>>> 3de8fd4b0410b3b20e57dc4481edd3458e905abd
     "axios": "^1.19.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",

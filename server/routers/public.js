@@ -18,5 +18,7 @@ router.get('/products/:id',PublicController.readById)
 router.get('/products/:id/bids',PublicController.getBidsByProduct)
 router.post('/products/:id/bids',PublicController.createBid)
 
+router.get('/products/:id/bid-advice', PublicController.getBidAdvice)
+
 
 module.exports = router

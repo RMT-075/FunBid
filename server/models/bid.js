@@ -5,12 +5,12 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Bid extends Model {
     static associate(models) {
-      // Bid ini punya 1 produk
+   
       Bid.belongsTo(models.Product, {
         foreignKey: 'product_id'
       });
 
-      // Bid ini punya 1 user (yang nge-bid)
+     
       Bid.belongsTo(models.User, {
         foreignKey: 'user_id'
       });
