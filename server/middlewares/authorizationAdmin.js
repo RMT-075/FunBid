@@ -1,3 +1,5 @@
+const { User } = require('../models')
+
 const authorizationAdmin = async (req, res, next) => {
     try {
         const { userId } = req.loginInfo
@@ -5,11 +7,11 @@ const authorizationAdmin = async (req, res, next) => {
         const user = await User.findByPk(userId)
 
         if (!user) {
-            throw { name: "NotFound" }
+            throw { name: 'NotFound' }
         }
 
-        if (user.role !== "admin") {
-            throw { name: "Forbidden" }
+        if (user.role !== 'admin') {
+            throw { name: 'Forbidden' }
         }
 
         next()
