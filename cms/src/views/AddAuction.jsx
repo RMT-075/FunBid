@@ -19,6 +19,8 @@ export default function AddAuction() {
     image: null,
   });
 
+  const [loadingAI, setLoadingAI] = useState(false);
+
   function handleChange(e) {
     const { name, value, files } = e.target;
 
@@ -32,6 +34,48 @@ export default function AddAuction() {
         ...form,
         [name]: value,
       });
+    }
+  }
+
+  async function handleAiSuggestion() {
+    try {
+      if (!form.name) {
+        return toastError("Please enter auction name first");
+      }
+
+      setLoadingAI(true);
+
+      const token = localStorage.getItem("access_token");
+
+      const response = await axios.post(
+        `${baseUrl}/admin/ai-suggestion`,
+        {
+          name: form.name,
+          description: form.description,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setForm((prev) => ({
+        ...prev,
+        description: response.data.description || prev.description,
+        starting_price: response.data.starting_price || prev.starting_price,
+        bid_increment: response.data.bid_increment || prev.bid_increment,
+      }));
+
+      toastSuccess("AI suggestion generated successfully");
+    } catch (error) {
+      console.log(error);
+
+      toastError(
+        error.response?.data?.message || "Failed to generate AI suggestion",
+      );
+    } finally {
+      setLoadingAI(false);
     }
   }
 
@@ -50,39 +94,33 @@ export default function AddAuction() {
       formData.append("start_time", form.start_time);
       formData.append("end_time", form.end_time);
       formData.append("status", form.status);
-      formData.append("image", form.image);
 
-      await axios.post(
-        `${baseUrl}/admin/auctions`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (form.image) {
+        formData.append("image", form.image);
+      }
+
+      await axios.post(`${baseUrl}/admin/auctions`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       toastSuccess("Auction created successfully");
 
       navigate("/admin/dashboard");
     } catch (error) {
-      toastError(
-        error.response?.data?.message ||
-        "Failed to create auction"
-      );
+      console.log(error);
+
+      toastError(error.response?.data?.message || "Failed to create auction");
     }
   }
 
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Add Auction
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-800">Add Auction</h1>
 
-        <p className="mt-1 text-gray-500">
-          Create a new auction item
-        </p>
+        <p className="mt-1 text-gray-500">Create a new auction item</p>
       </div>
 
       <form
@@ -90,7 +128,6 @@ export default function AddAuction() {
         className="rounded-xl bg-white p-6 shadow-md"
       >
         <div className="grid gap-5">
-
           <div>
             <label className="mb-2 block font-medium text-gray-700">
               Auction Name
@@ -108,18 +145,26 @@ export default function AddAuction() {
           </div>
 
           <div>
-            <label className="mb-2 block font-medium text-gray-700">
-              Description
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="font-medium text-gray-700">Description</label>
+
+              <button
+                type="button"
+                onClick={handleAiSuggestion}
+                disabled={loadingAI}
+                className="cursor-pointer rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loadingAI ? "Generating..." : "Ask AI Suggestion"}
+              </button>
+            </div>
 
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
-              placeholder="Enter description"
+              placeholder="Enter description or use AI suggestion"
               rows="5"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
-              required
             />
           </div>
 
@@ -201,7 +246,7 @@ export default function AddAuction() {
               className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
             >
               <option value="upcoming">Upcoming</option>
-              <option value="active">Active</option>
+              <option value="live">Live</option>
               <option value="ended">Ended</option>
             </select>
           </div>
@@ -237,7 +282,6 @@ export default function AddAuction() {
               Create Auction
             </button>
           </div>
-
         </div>
       </form>
     </div>
