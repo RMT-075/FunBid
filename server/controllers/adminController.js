@@ -1,127 +1,298 @@
-const { Product } = require('../models')
+const { Product, Bid } = require("../models");
 
 class AdminController {
-    static async getAuctions(req, res, next) {
-        try {
-            const products = await Product.findAll({
-                order: [['createdAt', 'DESC']]
-            })
+  static async getDashboard(req, res, next) {
+    try {
+      const totalAuction = await Product.count();
+      const upcoming = await Product.count({
+        where: {
+          status: "upcoming",
+        },
+      });
 
-            res.status(200).json(products)
-        } catch (error) {
-            next(error)
-        }
+      const live = await Product.count({
+        where: {
+          status: "live",
+        },
+      });
+
+      const ended = await Product.count({
+        where: {
+          status: "ended",
+        },
+      });
+
+      res.status(200).json({
+        totalAuction,
+        upcoming,
+        live,
+        ended,
+      });
+    } catch (error) {
+      next(error);
     }
+  }
 
-    static async createAuction(req, res, next) {
-        try {
-            const {
-                name,
-                description,
-                image_url,
-                starting_price,
-                bid_increment,
-                start_time,
-                end_time,
-                status
-            } = req.body
+  static async getAuctions(req, res, next) {
+    try {
+      const products = await Product.findAll({
+        order: [["createdAt", "DESC"]],
+      });
 
-            const { userId } = req.loginInfo
-
-            const product = await Product.create({
-                name,
-                description,
-                image_url,
-                starting_price,
-                bid_increment,
-                start_time,
-                end_time,
-                status,
-                created_by: userId
-            })
-
-            res.status(201).json(product)
-        } catch (error) {
-            next(error)
-        }
+      res.status(200).json(products);
+    } catch (error) {
+      next(error);
     }
+  }
 
-    static async getAuctionById(req, res, next) {
-        try {
-            const { id } = req.params
+  static async getBids(req, res, next) {
+    try {
+      const bids = await Bid.findAll({
+        order: [["createdAt", "DESC"]],
+      });
 
-            const product = await Product.findByPk(id)
-
-            if (!product) {
-                throw { name: 'NotFound' }
-            }
-
-            res.status(200).json(product)
-        } catch (error) {
-            next(error)
-        }
+      res.status(200).json(bids);
+    } catch (error) {
+      next(error);
     }
+  }
 
-    static async updateAuction(req, res, next) {
-        try {
-            const { id } = req.params
+  static async createAuction(req, res, next) {
+    try {
+      const {
+        name,
+        description,
+        image_url,
+        starting_price,
+        bid_increment,
+        start_time,
+        end_time,
+        status,
+      } = req.body;
 
-            const product = await Product.findByPk(id)
+      const { userId } = req.loginInfo;
 
-            if (!product) {
-                throw { name: 'NotFound' }
-            }
+      if (Number(starting_price) <= 0) {
+        throw {
+          name: "ValidationError",
+          message: "Starting price must be greater than 0",
+        };
+      }
 
-            const {
-                name,
-                description,
-                image_url,
-                starting_price,
-                bid_increment,
-                start_time,
-                end_time,
-                status
-            } = req.body
+      if (Number(bid_increment) <= 0) {
+        throw {
+          name: "ValidationError",
+          message: "Bid increment must be greater than 0",
+        };
+      }
 
-            await product.update({
-                name,
-                description,
-                image_url,
-                starting_price,
-                bid_increment,
-                start_time,
-                end_time,
-                status
-            })
+      if (new Date(end_time) <= new Date(start_time)) {
+        throw {
+          name: "ValidationError",
+          message: "End time must be after start time",
+        };
+      }
 
-            res.status(200).json({
-                message: 'Auction updated successfully',
-                product
-            })
-        } catch (error) {
-            next(error)
-        }
+      const product = await Product.create({
+        name,
+        description,
+        image_url,
+        starting_price,
+        bid_increment,
+        start_time,
+        end_time,
+        status,
+        created_by: userId,
+      });
+
+      res.status(201).json(product);
+    } catch (error) {
+      next(error);
     }
+  }
 
-    static async deleteAuction(req, res, next) {
-        try {
-            const { id } = req.params
+  static async getAiSuggestion(req, res, next) {
+    try {
+      const { name, description } = req.body;
 
-            const product = await Product.findByPk(id)
+      if (!name) {
+        throw {
+          name: "ValidationError",
+          message: "Product name is required",
+        };
+      }
 
-            if (!product) {
-                throw { name: 'NotFound' }
-            }
+      const prompt = `
+        You are an expert auction assistant.
 
-            await product.destroy()
+        Analyze this auction product:
 
-            res.status(200).json({
-                message: 'Auction deleted successfully'
-            })
-        } catch (error) {
-            next(error)
+        Product name: ${name}
+        Current description: ${description || "No description provided"}
+
+        Give suggestions for:
+        1. An improved and attractive product description.
+        2. A reasonable suggested starting price in Indonesian Rupiah.
+        3. A reasonable suggested bid increment in Indonesian Rupiah.
+
+        Return ONLY valid JSON with this exact format:
+
+        {
+            "suggestedDescription": "string",
+            "suggestedStartingPrice": number,
+            "suggestedBidIncrement": number
         }
+        `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        },
+      });
+
+      const result = JSON.parse(response.text);
+
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
     }
+  }
+
+  static async getAuctionById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const product = await Product.findByPk(id);
+
+      if (!product) {
+        throw { name: "NotFound" };
+      }
+
+      res.status(200).json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateAuction(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const product = await Product.findByPk(id);
+
+      if (!product) {
+        throw { name: "NotFound" };
+      }
+
+      const {
+        name,
+        description,
+        image_url,
+        starting_price,
+        bid_increment,
+        start_time,
+        end_time,
+        status,
+      } = req.body;
+
+      if (starting_price !== undefined && Number(starting_price) <= 0) {
+        throw {
+          name: "ValidationError",
+          message: "Starting price must be greater than 0",
+        };
+      }
+
+      if (bid_increment !== undefined && Number(bid_increment) <= 0) {
+        throw {
+          name: "ValidationError",
+          message: "Bid increment must be greater than 0",
+        };
+      }
+
+      const newStartTime = start_time || product.start_time;
+      const newEndTime = end_time || product.end_time;
+
+      if (new Date(newEndTime) <= new Date(newStartTime)) {
+        throw {
+          name: "ValidationError",
+          message: "End time must be after start time",
+        };
+      }
+
+      await product.update({
+        name,
+        description,
+        image_url,
+        starting_price,
+        bid_increment,
+        start_time,
+        end_time,
+        status,
+      });
+
+      res.status(200).json({
+        message: "Auction updated successfully",
+        product,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateAuctionStatus(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const validStatus = ["upcoming", "live", "ended"];
+
+      if (!validStatus.includes(status)) {
+        throw {
+          name: "ValidationError",
+          message: "Invalid auction status",
+        };
+      }
+
+      const product = await Product.findByPk(id);
+
+      if (!product) {
+        throw { name: "NotFound" };
+      }
+
+      await product.update({
+        status,
+      });
+
+      res.status(200).json({
+        message: "Auction status updated successfully",
+        product,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteAuction(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const product = await Product.findByPk(id);
+
+      if (!product) {
+        throw { name: "NotFound" };
+      }
+
+      await product.destroy();
+
+      res.status(200).json({
+        message: "Auction deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
-module.exports = AdminController
+module.exports = AdminController;
