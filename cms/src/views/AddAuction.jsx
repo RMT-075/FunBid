@@ -48,7 +48,7 @@ export default function AddAuction() {
       const token = localStorage.getItem("access_token");
 
       const response = await axios.post(
-        `${baseUrl}/admin/ai-suggestion`,
+        `${baseUrl}/admin/auctions/ai-suggestion`,
         {
           name: form.name,
           description: form.description,
@@ -104,6 +104,8 @@ export default function AddAuction() {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      console.log(response.data)
 
       toastSuccess("Auction created successfully");
 
