@@ -73,10 +73,16 @@ const errorHandler = (error, req, res, next) => {
     status = 400;
     message = error.message;
   }
-  
+
   if (error.name == "AIParseError") {
     status = 502;
     message = "Failed to get a valid response from AI, please try again";
+  }
+
+  if (error.status === 503 || error.code === 503) {
+    return res.status(503).json({
+      message: "AI service is currently busy. Please try again in a moment.",
+    });
   }
 
   res.status(status).json({ message });

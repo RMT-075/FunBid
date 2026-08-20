@@ -13,7 +13,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/admin" element={<Navigate to="/admin/login" />} />
+          <Route path="/" element={<Navigate to="/admin/login" />} />
           <Route path="/admin/login" element={<Login />} />
           <Route element={<ProtectedRoute />}>
             <Route element={<BaseLayout />}>

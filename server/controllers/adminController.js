@@ -110,14 +110,14 @@ class AdminController {
         include: [
           {
             model: Product,
-            attributes: ["id", "name"]
+            attributes: ["id", "name"],
           },
           {
             model: User,
-            attributes: ["id", "name"]
-          }
+            attributes: ["id", "name"],
+          },
         ],
-        order: [["createdAt", "DESC"]]
+        order: [["createdAt", "DESC"]],
       });
 
       res.status(200).json(bids);
@@ -220,23 +220,45 @@ class AdminController {
         Return ONLY valid JSON with this exact format:
 
         {
-            "suggestedDescription": "string",
-            "suggestedStartingPrice": number,
-            "suggestedBidIncrement": number
+          "suggestedDescription": "string",
+          "suggestedStartingPrice": number,
+          "suggestedBidIncrement": number
         }
         `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-        },
-      });
+      let response;
+
+      // retry maksimal 3 kali
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          response = await ai.models.generateContent({
+            model: "gemini-3.6-flash",
+            contents: prompt,
+            config: {
+              responseMimeType: "application/json",
+            },
+          });
+
+          break;
+        } catch (error) {
+          console.log(`AI attempt ${attempt} failed`);
+
+          if (attempt < 3) {
+            await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
+          } else {
+            throw error;
+          }
+        }
+      }
 
       const result = JSON.parse(response.text);
 
-      res.status(200).json(result);
+      res.status(200).json({
+        description: result.suggestedDescription,
+        starting_price: result.suggestedStartingPrice,
+        bid_increment: result.suggestedBidIncrement,
+      });
+
     } catch (error) {
       next(error);
     }
