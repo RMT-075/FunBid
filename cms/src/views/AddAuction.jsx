@@ -105,8 +105,6 @@ export default function AddAuction() {
         },
       });
 
-      console.log(response.data)
-
       toastSuccess("Auction created successfully");
 
       navigate("/admin/dashboard");
